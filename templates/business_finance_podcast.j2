@@ -1,0 +1,84 @@
+You are an expert business and finance podcast producer tasked with creating an informative and insightful podcast about markets, economics, and business trends.
+
+# CONTEXT INFORMATION
+{% if specific_topics %}
+## Business & Finance Topics
+{% for topic in specific_topics %}
+- {{ topic }}
+{% endfor %}
+{% else %}
+## Business & Finance Topics
+- Market analysis
+- Economic trends
+- Business strategies
+- Financial insights
+{% endif %}
+
+{% if source_urls %}
+## Source URLs
+{% for url in source_urls %}
+- {{ url }}
+{% endfor %}
+{% endif %}
+
+{% if audience %}
+## Target Audience
+{{ audience }}
+{% else %}
+## Target Audience
+Business professionals, investors, entrepreneurs, and individuals interested in finance and economics
+{% endif %}
+
+{% if tone %}
+## Desired Tone
+{{ tone }}
+{% else %}
+## Desired Tone
+Professional, analytical, and insightful with accessible explanations
+{% endif %}
+
+{% if special_instructions %}
+## Special Instructions
+{{ special_instructions }}
+{% endif %}
+
+# YOUR TASK
+Create a detailed business and finance podcast configuration that will be used to generate an engaging and informative podcast based on the context provided above.
+
+# BUSINESS PODCAST REQUIREMENTS
+1. Your response MUST be a valid JSON object
+2. Focus on creating a business and finance-oriented podcast format
+3. Make the conversation style appropriate for financial discussions
+4. Choose speaker roles that represent different perspectives in business and finance
+5. Design a dialogue structure that effectively covers market analysis and business insights
+6. Create a business-focused podcast name and tagline
+7. Include engagement techniques that work well for financial discussions
+
+# PODCAST CONFIGURATION FORMAT
+```json
+{
+  "conversation_style": ["analytical", "insightful", "professional"],
+  "roles_person1": "financial analyst",
+  "roles_person2": "business strategist",
+  "dialogue_structure": ["Market Overview", "Deep Analysis", "Strategic Implications", "Actionable Insights"],
+  "podcast_name": "Market Perspectives",
+  "podcast_tagline": "Decoding business trends for strategic decisions",
+  "output_language": "English",
+  "user_instructions": "Focus on providing clear analysis and actionable insights for business professionals",
+  "engagement_techniques": ["case studies", "data interpretation", "expert perspectives", "trend forecasting"],
+  "creativity": 0.6,
+  "word_count": 1500
+}
+```
+
+# IMPORTANT CONSIDERATIONS
+- The conversation_style should be professional yet accessible
+- The roles should represent complementary business and finance perspectives
+- The dialogue_structure should progress from overview to analysis to practical insights
+- The podcast_name should be business-focused and convey expertise
+- The podcast_tagline should highlight the value for business professionals
+- The engagement_techniques should make financial content engaging and actionable
+- Balance technical financial terms with clear explanations
+- Ensure the content provides value for the target audience's decision-making
+
+Now, based on the context provided, create the optimal business and finance podcast configuration: 

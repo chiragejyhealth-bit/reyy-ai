@@ -40,4 +40,25 @@ class Config:
             'default_topic': os.environ.get('PERPLEXITY_DEFAULT_TOPIC', 'top'),
             'default_source': os.environ.get('PERPLEXITY_DEFAULT_SOURCE', 'default'),
             'json_output_path': os.environ.get('PERPLEXITY_JSON_OUTPUT_PATH', 'response/perplexity_response.json')
+        }
+    
+    @staticmethod
+    def get_podcast_config() -> Dict[str, Any]:
+        """Get podcast generation configuration from environment variables"""
+        return {
+            'default_tts_model': os.environ.get('PODCAST_DEFAULT_TTS_MODEL', 'gemini'),
+            'default_word_count': int(os.environ.get('PODCAST_DEFAULT_WORD_COUNT', '100')),
+            'default_creativity': float(os.environ.get('PODCAST_DEFAULT_CREATIVITY', '0.8')),
+            'default_podcast_name': os.environ.get('PODCAST_DEFAULT_NAME', 'Reyy Podcast'),
+            'default_output_language': os.environ.get('PODCAST_DEFAULT_LANGUAGE', 'English')
+        }
+    
+    @staticmethod
+    def get_gemini_config() -> Dict[str, Any]:
+        """Get Gemini API configuration from environment variables"""
+        return {
+            'api_key': os.environ.get('GEMINI_API_KEY'),
+            'default_model': os.environ.get('GEMINI_DEFAULT_MODEL', 'gemini-1.5-pro'),
+            'default_temperature': float(os.environ.get('GEMINI_DEFAULT_TEMPERATURE', '0.7')),
+            'default_max_tokens': int(os.environ.get('GEMINI_DEFAULT_MAX_TOKENS', '1024'))
         } 
