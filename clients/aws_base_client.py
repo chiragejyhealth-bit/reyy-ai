@@ -1,6 +1,6 @@
 import os
 import aioboto3
-from typing import Optional, Any
+from typing import Optional
 
 
 class AWSBaseClient:
@@ -13,6 +13,3 @@ class AWSBaseClient:
             aws_secret_access_key=self.aws_secret_access_key,
             region_name=self.region_name
         )
-    
-    def is_configured(self) -> bool:
-        return bool(self.aws_access_key_id and self.aws_secret_access_key) 
