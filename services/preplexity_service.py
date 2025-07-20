@@ -1,4 +1,5 @@
-from typing import List, Dict, Any, Tuple
+from typing import List, Tuple
+from langsmith import traceable
 from clients.dynamodb_client import DynamoDBClient
 from clients.perplexity_client import PerplexityClient
 from models.perplexity import PerplexityFeedItem
@@ -9,6 +10,7 @@ class PerplexityService:
         self.perplexity_client = perplexity_client
         self.dynamo_db_client = dynamo_db_client
 
+    @traceable(name="get_and_save_feed")
     async def get_and_save_feed(self, limit: int = 20, offset: int = 0) -> Tuple[int, List[PerplexityFeedItem]]:
         feed_items : List[PerplexityFeedItem] = await self.perplexity_client.get_feed_items(limit, offset)
         num_items_saved = await self.dynamo_db_client.put_items([item.model_dump() for item in feed_items])

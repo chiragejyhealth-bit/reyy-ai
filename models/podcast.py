@@ -86,6 +86,18 @@ class PodcastConfig(BaseModel):
         description="TTS model to use: 'openai', 'elevenlabs', 'gemini', 'geminimulti', or 'edge'"
     )
 
+    transcript_only: bool = Field(
+        default=False,
+        description="Whether to only generate the transcript or the full podcast"
+    )
+    transcript_file: Optional[str] = Field(
+        default=None,
+        description="Path to the transcript file"
+    )
+    image_paths: Optional[List[str]] = Field(
+        default=None,
+        description="List of image paths to include in the podcast"
+    )
     conversation_config: Optional[ConversationConfig] = Field(
         default=ConversationConfig(),
         description="Conversation configuration"

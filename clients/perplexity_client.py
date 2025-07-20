@@ -33,7 +33,7 @@ class PerplexityClient:
                      source: str = "default") -> List[PerplexityFeedItem]:
         
         feed_json : Dict[str, Any] = await self.get_feed(limit, offset, version, topic, source)
-        return [PerplexityFeedItem.from_json(item) for item in feed_json["items"]]
+        return [PerplexityFeedItem.from_json(json_data=item) for item in feed_json["items"]]
 
 if __name__ == "__main__":
     client = PerplexityClient()

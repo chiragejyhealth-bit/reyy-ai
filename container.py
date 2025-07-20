@@ -38,7 +38,6 @@ class ServicesContainer(containers.DeclarativeContainer):
         dynamo_db_client=dynamodb_client,
         s3_client=s3_client,
         gemini_client=gemini_client,
-        perplexity_client=perplexity_client
     )
 
     perplexity_service = providers.Singleton(
