@@ -47,7 +47,7 @@ def read_root() -> Dict[str, str]:
 
 @app.post("/get-and-save-feed")
 async def get_and_save_feed() -> Dict[str, Any]:
-    num_items_saved, feed_items = await perplexity_service.get_and_save_feed(limit=2, offset=0)
+    num_items_saved, feed_items = await perplexity_service.get_and_save_feed(limit=20, offset=0)
     return {"message": "Feed saved successfully", "num_items_saved": num_items_saved, "feed_items": feed_items}
 
 @app.post("/generate-podcast")

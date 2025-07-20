@@ -173,6 +173,91 @@ Create a detailed podcast configuration in JSON format.
 }
 ````
 
+## Docker Deployment
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+
+### Running with Docker
+
+1. Build and start the containers:
+
+```bash
+docker-compose up -d
+```
+
+2. Stop the containers:
+
+```bash
+docker-compose down
+```
+
+### Development with Docker
+
+To rebuild the Docker image after making changes:
+
+```bash
+docker-compose up -d --build
+```
+
+To view logs:
+
+```bash
+docker-compose logs -f
+```
+
+## Google Cloud Artifact Registry Deployment
+
+### Prerequisites
+
+- Google Cloud SDK installed and configured
+- Access to the Google Cloud project
+- Docker installed
+
+### Deploying to Artifact Registry
+
+1. Make sure you're authenticated with Google Cloud:
+
+```bash
+gcloud auth login
+```
+
+2. Use the provided script to build and push the image:
+
+```bash
+./deploy-to-gcr.sh
+```
+
+3. To deploy from the Artifact Registry image:
+   - Edit the `docker-compose.yml` file
+   - Comment out the `build: .` line
+   - Uncomment the `image: us-central1-docker.pkg.dev/future-function-466418-i7/reyy-ai/reyy-ai:latest` line
+   - Run `docker-compose up -d`
+
+### Manual Deployment Steps
+
+If you prefer to deploy manually:
+
+1. Build and tag the image:
+
+```bash
+docker build -t us-central1-docker.pkg.dev/future-function-466418-i7/reyy-ai/reyy-ai:latest .
+```
+
+2. Configure Docker to use Google Cloud authentication:
+
+```bash
+gcloud auth configure-docker us-central1-docker.pkg.dev
+```
+
+3. Push the image:
+
+```bash
+docker push us-central1-docker.pkg.dev/future-function-466418-i7/reyy-ai/reyy-ai:latest
+```
+
 ```
 
 ```

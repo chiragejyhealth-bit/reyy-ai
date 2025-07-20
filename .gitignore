@@ -35,3 +35,17 @@ response/
 # AWS credentials
 .aws/
 credentials 
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Data and responses
+data/audio/*
+data/images/*
+data/transcripts/*
+responses/pdf/*
+!data/audio/.gitkeep
+!data/images/.gitkeep
+!data/transcripts/.gitkeep
+!responses/pdf/.gitkeep 
