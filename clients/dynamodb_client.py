@@ -8,16 +8,29 @@ class DynamoDBClient(AWSBaseClient):
         super().__init__()
         self.table_name = os.environ.get('DYNAMODB_TABLE_NAME', 'reyy-ai')
     
-    async def put_item(self, item: Dict[str, Any]) -> bool:
+    async def put_items(self, items: List[Dict[str, Any]]) -> int:
         try:
             async with self.session.resource('dynamodb') as dynamodb:
                 table = await dynamodb.Table(self.table_name)
-                await table.put_item(Item=item)
-                return True
+                
+                # Filter out items that already exist
+                new_items = []
+                for item in items:
+                    if 'uuid' not in item:
+                        new_items.append(item)
+                        continue
+                        
+                    existing_item = await self.get_item({'uuid': item['uuid']})
+                    if not existing_item:
+                        new_items.append(item)
+                
+                if new_items:
+                    await table.put_items(Items=new_items)
+                return len(new_items)
                 
         except Exception as e:
             print(f"Error putting item in DynamoDB: {e}")
-            return False
+            return 0
     
     async def get_item(self, key: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         try:

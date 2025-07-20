@@ -11,7 +11,7 @@ class ConversationConfig(BaseModel):
 
     # Conversation configuration
     word_count: int = Field(
-        default=500,
+        default=150,
         description="Target word count for the podcast transcript"
     )
     conversation_style: List[str] = Field(
@@ -81,12 +81,12 @@ class PodcastConfig(BaseModel):
     )
 
     # TTS configuration
-    tts_model: str = Field(
+    tts_model: Optional[str] = Field(
         default="gemini",
         description="TTS model to use: 'openai', 'elevenlabs', 'gemini', 'geminimulti', or 'edge'"
     )
 
     conversation_config: Optional[ConversationConfig] = Field(
-        default=None,
+        default=ConversationConfig(),
         description="Conversation configuration"
     )
