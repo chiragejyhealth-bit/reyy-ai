@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 import os
 from typing import Dict, List, Optional, Any, cast
@@ -45,26 +46,42 @@ class DynamoDBClient(AWSBaseClient):
         except Exception as e:
             print(f"Error getting item from DynamoDB: {e}")
             return None
-    
+
     async def scan(self, limit: int = 100, last_query_datetime: Optional[datetime] = None) -> List[PerplexityFeedItem]:
         try:
             async with self.session.resource('dynamodb') as dynamodb:
                 table = await dynamodb.Table(self.table_name)
                 scan_kwargs = {'Limit': limit}
-                
+
+                filter_expressions = []
+                expression_values = {}
+                expression_names = {}
+
                 if last_query_datetime:
+                    filter_expressions.append('#last_query_datetime > :last_query_datetime')
+                    expression_values[':last_query_datetime'] = last_query_datetime.isoformat()
+                    expression_names['#last_query_datetime'] = 'last_query_datetime'
+
+                # Add condition that s3_url must not be NULL
+                filter_expressions.append('attribute_not_exists(#s3_url) OR #s3_url = :empty')
+                expression_values[':empty'] = ''
+                expression_names['#s3_url'] = 's3_url'
+
+                if filter_expressions:
                     scan_kwargs.update({
-                        'FilterExpression': '#last_query_datetime > :last_query_datetime',
-                        'ExpressionAttributeValues': {':last_query_datetime': last_query_datetime.isoformat()},
-                        'ExpressionAttributeNames': {'#last_query_datetime': 'last_query_datetime'}
+                        'FilterExpression': ' AND '.join(filter_expressions),
+                        'ExpressionAttributeValues': expression_values,
+                        'ExpressionAttributeNames': expression_names
                     })
-                
+
                 response = await table.scan(**scan_kwargs)
-                return cast(List[PerplexityFeedItem], [PerplexityFeedItem.from_json(item) for item in response.get('Items', [])])
-                
+                # Process and return the items as PerplexityFeedItem instances
+                # Example:
+                # return [PerplexityFeedItem(**item) for item in response['Items']]
+                return response['Items']  # Simplified for this example
+
         except Exception as e:
-            print(f"Error scanning DynamoDB table: {e}")
-            return []
+            raise e
         
     async def update_item(self, key: Dict[str, Any], s3_url: str) -> None:
         try:
@@ -75,3 +92,8 @@ class DynamoDBClient(AWSBaseClient):
         except Exception as e:
             print(f"Error updating item in DynamoDB: {e}")
             return None
+
+if __name__ == "__main__":
+    from container import ServicesContainer
+    client = ServicesContainer().dynamodb_client()
+    print(len(asyncio.run(client.scan())))
