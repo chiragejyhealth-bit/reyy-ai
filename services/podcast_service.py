@@ -25,7 +25,7 @@ class PodcastService:
     @traceable(name="generate_podcast")
     async def generate_podcast(self) -> bool:
         cutoff_date = datetime.now() - timedelta(days=1)
-        items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=100, last_query_datetime=cutoff_date)
+        items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=25, last_query_datetime=cutoff_date)
         
         # Process items in parallel
         for item in items:
