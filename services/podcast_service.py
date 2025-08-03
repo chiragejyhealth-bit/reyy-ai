@@ -28,30 +28,33 @@ class PodcastService:
         items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=100, last_query_datetime=cutoff_date)
         
         # Process items in parallel
-        tasks = [self._process_item(item) for item in items]
-        await asyncio.gather(*tasks)
-        
-        # Clean up any remaining transcripts
-        delete_transcripts()
+        for item in items:
+            await self._process_item(item)
         return True
     
     @traceable(name="process_podcast_item")
     async def _process_item(self, item: PerplexityFeedItem) -> None:
         """Process a single feed item to generate and upload a podcast."""
-        # Create PDF from item
-        pdf_path = await self._create_pdf(item)
-        
-        # Generate podcast audio
-        audio_path = await self._generate_audio(item, pdf_path)
-        
-        # Upload to S3 and get URL
-        s3_url = await self._upload_to_s3(audio_path)
-        
-        # Update item in database with S3 URL
-        await self._update_item_with_url(item.uuid, s3_url)
-        
-        # Clean up files
-        self._cleanup_files([pdf_path, audio_path])
+        pdf_path = audio_path = None
+        try:
+            # Create PDF from item
+            pdf_path = await self._create_pdf(item)
+
+            # Generate podcast audio
+            audio_path = await self._generate_audio(item, pdf_path)
+
+            # Upload to S3 and get URL
+            s3_url = await self._upload_to_s3(audio_path)
+
+            # Update item in database with S3 URL
+            await self._update_item_with_url(item.uuid, s3_url)
+
+        except Exception as e:
+            raise e
+        finally:
+            self._cleanup_files([pdf_path, audio_path])
+            delete_transcripts()
+            await asyncio.sleep(60)
     
     @traceable(name="create_pdf")
     async def _create_pdf(self, item: PerplexityFeedItem) -> str:
