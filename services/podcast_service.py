@@ -11,6 +11,8 @@ from models.perplexity import PerplexityFeedItem
 from models.podcast import PodcastConfig
 from utils.common import delete_transcripts, delete_audio_files, delete_pdf_responses
 from utils.pdf import save_item_as_pdf
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class PodcastService:
     def __init__(self, podcast_client: PodcastClient, dynamo_db_client: DynamoDBClient, s3_client: S3Client,\
@@ -32,9 +34,12 @@ class PodcastService:
             raise e
         cutoff_date = datetime.now() - timedelta(days=5)
         items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=2, last_query_datetime=cutoff_date)
+
+        logging.info(f"Found {len(items)} items to process.")
         # Process items in parallel
         for item in items:
             asyncio.create_task(self._process_item(item))
+            logging.info(f"Started processing item: {item.uuid}")
         return len(items)
     
     @traceable(name="process_podcast_item")
@@ -45,14 +50,22 @@ class PodcastService:
             # Create PDF from item
             pdf_path = await self._create_pdf(item)
 
+            logging.info(f"Created PDF for item: {item.uuid}")
+
             # Generate podcast audio
             audio_path = await self._generate_audio(item, pdf_path)
+
+            logging.info(f"Generated audio for item: {item.uuid}")
 
             # Upload to S3 and get URL
             s3_url = await self._upload_to_s3(audio_path)
 
+            logging.info(f"Uploaded audio to S3 for item: {item.uuid}")
+
             # Update item in database with S3 URL
             await self._update_item_with_url(item.uuid, s3_url)
+
+            logging.info(f"Updated item in database with S3 URL for item: {item.uuid}")
 
         except Exception as e:
             raise e
