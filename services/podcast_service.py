@@ -31,7 +31,7 @@ class PodcastService:
         except Exception as e:
             raise e
         cutoff_date = datetime.now() - timedelta(days=5)
-        items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=25, last_query_datetime=cutoff_date)
+        items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=2, last_query_datetime=cutoff_date)
         # Process items in parallel
         for item in items:
             asyncio.create_task(self._process_item(item))
