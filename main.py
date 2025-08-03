@@ -52,8 +52,8 @@ async def get_and_save_feed() -> Dict[str, Any]:
 
 @app.post("/generate-podcast")
 async def generate_podcast() -> Dict[str, Any]:
-    success = await podcast_service.generate_podcast()
-    return {"message": "Podcast generated successfully" if success else "Podcast generation failed"}
+    items_length = await podcast_service.generate_podcast()
+    return {"message": "Podcast generated successfully for " + str(items_length) + " items"}
 
 def start() -> None:
     host: str = os.environ.get('API_HOST', '0.0.0.0')

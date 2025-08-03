@@ -63,8 +63,7 @@ class DynamoDBClient(AWSBaseClient):
                     expression_names['#last_query_datetime'] = 'last_query_datetime'
 
                 # Add condition that s3_url must not be NULL
-                filter_expressions.append('attribute_not_exists(#s3_url) OR #s3_url = :empty')
-                expression_values[':empty'] = ''
+                filter_expressions.append('attribute_not_exists(#s3_url)')
                 expression_names['#s3_url'] = 's3_url'
 
                 if filter_expressions:
@@ -75,10 +74,7 @@ class DynamoDBClient(AWSBaseClient):
                     })
 
                 response = await table.scan(**scan_kwargs)
-                # Process and return the items as PerplexityFeedItem instances
-                # Example:
-                # return [PerplexityFeedItem(**item) for item in response['Items']]
-                return response['Items']  # Simplified for this example
+                return [PerplexityFeedItem(**item) for item in response['Items']]
 
         except Exception as e:
             raise e

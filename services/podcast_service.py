@@ -9,7 +9,7 @@ from clients.podcastfy_client import PodcastClient
 from clients.s3_client import S3Client
 from models.perplexity import PerplexityFeedItem
 from models.podcast import PodcastConfig
-from utils.common import delete_transcripts
+from utils.common import delete_transcripts, delete_audio_files, delete_pdf_responses
 from utils.pdf import save_item_as_pdf
 
 class PodcastService:
@@ -23,14 +23,19 @@ class PodcastService:
 
     #this will get all items from dynamo db and generate a podcast for each item with cutoff date 1 day ago
     @traceable(name="generate_podcast")
-    async def generate_podcast(self) -> bool:
-        cutoff_date = datetime.now() - timedelta(days=1)
+    async def generate_podcast(self) -> int:
+        try:
+            delete_transcripts()
+            delete_audio_files()
+            delete_pdf_responses()
+        except Exception as e:
+            raise e
+        cutoff_date = datetime.now() - timedelta(days=5)
         items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=25, last_query_datetime=cutoff_date)
-        
         # Process items in parallel
         for item in items:
-            await self._process_item(item)
-        return True
+            asyncio.create_task(self._process_item(item))
+        return len(items)
     
     @traceable(name="process_podcast_item")
     async def _process_item(self, item: PerplexityFeedItem) -> None:
@@ -52,9 +57,10 @@ class PodcastService:
         except Exception as e:
             raise e
         finally:
-            self._cleanup_files([pdf_path, audio_path])
             delete_transcripts()
-            await asyncio.sleep(60)
+            delete_audio_files()
+            delete_pdf_responses()
+            await asyncio.sleep(50)
     
     @traceable(name="create_pdf")
     async def _create_pdf(self, item: PerplexityFeedItem) -> str:
@@ -86,10 +92,3 @@ class PodcastService:
             key={'uuid': uuid},
             s3_url=s3_url
         )
-    
-    @traceable(name="cleanup_files")
-    def _cleanup_files(self, file_paths: List[str]) -> None:
-        """Remove temporary files."""
-        for path in file_paths:
-            if os.path.exists(path):
-                os.remove(path)
