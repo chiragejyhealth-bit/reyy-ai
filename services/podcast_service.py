@@ -32,8 +32,8 @@ class PodcastService:
             delete_pdf_responses()
         except Exception as e:
             raise e
-        cutoff_date = datetime.now() - timedelta(days=5)
-        items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=2, last_query_datetime=cutoff_date)
+
+        items: List[PerplexityFeedItem] = await self.dynamo_db_client.scan(limit=2, blank_s3_only=True)
 
         logging.info(f"Found {len(items)} items to process.")
         # Process items in parallel

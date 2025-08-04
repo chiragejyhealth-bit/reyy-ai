@@ -47,38 +47,62 @@ class DynamoDBClient(AWSBaseClient):
             print(f"Error getting item from DynamoDB: {e}")
             return None
 
-    async def scan(self, limit: int = 100, last_query_datetime: Optional[datetime] = None) -> List[PerplexityFeedItem]:
-        try:
-            async with self.session.resource('dynamodb') as dynamodb:
-                table = await dynamodb.Table(self.table_name)
-                scan_kwargs = {'Limit': limit}
+    async def scan(
+            self,
+            limit: int = 100,
+            *,
+            blank_s3_only: bool = False,
+            last_query_datetime: Optional[datetime] = None,
+    ) -> List[PerplexityFeedItem]:
 
-                filter_expressions = []
-                expression_values = {}
-                expression_names = {}
+        try:
+            async with self.session.resource("dynamodb") as dynamodb:
+                table = await dynamodb.Table(self.table_name)
+
+                filters: list[str] = []
+                names: dict[str, str] = {}
+                values: dict[str, str] = {}
 
                 if last_query_datetime:
-                    filter_expressions.append('#last_query_datetime > :last_query_datetime')
-                    expression_values[':last_query_datetime'] = last_query_datetime.isoformat()
-                    expression_names['#last_query_datetime'] = 'last_query_datetime'
+                    filters.append("#last_dt > :last_dt")
+                    names["#last_dt"] = "last_query_datetime"
+                    values[":last_dt"] = last_query_datetime.isoformat()
 
-                # Add condition that s3_url must not be NULL
-                filter_expressions.append('attribute_not_exists(#s3_url)')
-                expression_names['#s3_url'] = 's3_url'
+                if blank_s3_only:
+                    filters.append("attribute_not_exists(#s3) OR #s3 = :empty")
+                    names["#s3"] = "s3_url"
+                    values[":empty"] = ""
 
-                if filter_expressions:
-                    scan_kwargs.update({
-                        'FilterExpression': ' AND '.join(filter_expressions),
-                        'ExpressionAttributeValues': expression_values,
-                        'ExpressionAttributeNames': expression_names
-                    })
+                base_kwargs: dict = {}
+                if filters:
+                    base_kwargs["FilterExpression"] = " AND ".join(filters)
+                if names:
+                    base_kwargs["ExpressionAttributeNames"] = names
+                if values:
+                    base_kwargs["ExpressionAttributeValues"] = values
 
-                response = await table.scan(**scan_kwargs)
-                return [PerplexityFeedItem(**item) for item in response['Items']]
+                # ── paginated scan ─────────────────────────────────
+                items: list = []
+                start_key = None
 
-        except Exception as e:
-            raise e
-        
+                while len(items) < limit:
+                    page_limit = min(1000, limit - len(items))  # 1 MB ≈ ~1 000 rows
+                    kwargs = {"Limit": page_limit, **base_kwargs}
+                    if start_key:
+                        kwargs["ExclusiveStartKey"] = start_key
+
+                    resp = await table.scan(**kwargs)
+                    items.extend(resp.get("Items", []))
+
+                    start_key = resp.get("LastEvaluatedKey")
+                    if not start_key:
+                        break
+
+                return [PerplexityFeedItem(**item) for item in items[:limit]]
+
+        except Exception:
+            raise
+
     async def update_item(self, key: Dict[str, Any], s3_url: str) -> None:
         try:
             async with self.session.resource('dynamodb') as dynamodb:
@@ -92,4 +116,4 @@ class DynamoDBClient(AWSBaseClient):
 if __name__ == "__main__":
     from container import ServicesContainer
     client = ServicesContainer().dynamodb_client()
-    print(len(asyncio.run(client.scan())))
+    print(len(asyncio.run(client.scan(limit=10,blank_s3_only= True))))
