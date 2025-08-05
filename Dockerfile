@@ -12,8 +12,8 @@ RUN apt-get update && \
         xvfb libgtk-3-0 libdbus-glib-1-2 libnss3 libxss1 \
         libasound2 libx11-xcb1 libxcomposite1 libxcursor1 libxdamage1 \
         libxi6 libxtst6 libxrandr2 libu2f-udev libvulkan1 \
-        fonts-liberation build-essential && \
-    # ---- Google-Chrome stable repo ----
+        fonts-liberation build-essential \
+        ffmpeg && \
     wget -qO- https://dl.google.com/linux/linux_signing_key.pub | \
         gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] \
@@ -23,11 +23,12 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends google-chrome-stable && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+
 # ---------- Python deps ----------
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ---------- App code & runtime dirs ----------
+# ---------- App code & runtime dirs ----------x
 COPY . .
 RUN mkdir -p data/audio data/images data/transcripts responses/pdf
 
