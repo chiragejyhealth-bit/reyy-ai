@@ -38,7 +38,7 @@ class PodcastService:
         logging.info(f"Found {len(items)} items to process.")
         # Process items in parallel
         for item in items:
-            asyncio.create_task(self._process_item(item))
+            await self._process_item(item)
             logging.info(f"Started processing item: {item.uuid}")
         return len(items)
     
@@ -73,7 +73,7 @@ class PodcastService:
             delete_transcripts()
             delete_audio_files()
             delete_pdf_responses()
-            await asyncio.sleep(50)
+            await asyncio.sleep(2)
     
     @traceable(name="create_pdf")
     async def _create_pdf(self, item: PerplexityFeedItem) -> str:
