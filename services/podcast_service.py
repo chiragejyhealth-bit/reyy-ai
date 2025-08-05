@@ -38,7 +38,7 @@ class PodcastService:
         logging.info(f"Found {len(items)} items to process.")
         # Process items in parallel
         for item in items:
-            await self._process_item(item)
+            asyncio.create_task(self._process_item(item))
             logging.info(f"Started processing item: {item.uuid}")
         return len(items)
     
